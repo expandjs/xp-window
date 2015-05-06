@@ -20,7 +20,7 @@ This element is used to get information about the current browser window.
 <link rel="import" href="../polymer/polymer.html">
 <link rel="import" href="../expandjs/expandjs.html">
 
-<polymer-element name="xp-window" constructor="XPWindowElement" attributes="hash host hostname href pathname protocol search">
+<polymer-element name="xp-window" constructor="XPWindowElement" attributes="hash host hostname href origin pathname protocol search">
 
     <template>
         <style>
@@ -32,15 +32,6 @@ This element is used to get information about the current browser window.
 
     <script>
         XPElement({
-
-            /**
-             * Fired when the window is about to unload its resources.
-             *
-             * @event xp-window-beforeunload
-             * @param {Element} firer
-             * @bubbles
-             * @cancelable
-             */
 
             /**
              * Fired when the window's hash changes.
@@ -154,18 +145,22 @@ This element is used to get information about the current browser window.
                 XP.assertArgument(XP.isVoid(url) || XP.isString(url), 3, 'string');
 
                 // Vars
-                var self = this;
+                var self = this,
+                    push = url && url !== self.href;
 
                 // Preparing
                 title = title || document.title;
                 data  = XP.assign({}, data, {title: title});
 
                 // Pushing
-                history[url && url !== self.href ? 'pushState' : 'replaceState'](data, title, url);
+                history[push ? 'pushState' : 'replaceState'](data, title, url);
                 document.title = title;
 
                 // Refreshing
                 XP.invoke(self.instances, 'refresh');
+
+                // Firing
+                if (push) { self.asyncFire('xp-window-popstate', {firer: self}); }
 
                 return self;
             },
@@ -199,6 +194,7 @@ This element is used to get information about the current browser window.
                 self.host     = location.host;
                 self.hostname = location.hostname;
                 self.href     = location.href;
+                self.origin   = location.origin;
                 self.pathname = location.pathname;
                 self.protocol = location.protocol;
                 self.search   = location.search;
@@ -212,7 +208,7 @@ This element is used to get information about the current browser window.
             publish: {
 
                 /**
-                 * This attribute is binded to `location.hash`.
+                 * This attribute is bound to `location.hash`.
                  *
                  * @attribute hash
                  * @type string
@@ -221,7 +217,7 @@ This element is used to get information about the current browser window.
                 hash: {reflect: false, value: location.hash},
 
                 /**
-                 * This attribute is binded to `location.host`.
+                 * This attribute is bound to `location.host`.
                  *
                  * @attribute host
                  * @type string
@@ -231,7 +227,7 @@ This element is used to get information about the current browser window.
                 host: {reflect: false, value: location.host},
 
                 /**
-                 * This attribute is binded to `location.hostname`.
+                 * This attribute is bound to `location.hostname`.
                  *
                  * @attribute hostname
                  * @type string
@@ -241,7 +237,7 @@ This element is used to get information about the current browser window.
                 hostname: {reflect: false, value: location.hostname},
 
                 /**
-                 * This attribute is binded to `location.href`.
+                 * This attribute is bound to `location.href`.
                  *
                  * @attribute href
                  * @type string
@@ -251,7 +247,17 @@ This element is used to get information about the current browser window.
                 href: {reflect: false, value: location.href},
 
                 /**
-                 * This attribute is binded to `location.pathname`.
+                 * This attribute is bound to `location.origin`.
+                 *
+                 * @attribute origin
+                 * @type string
+                 * @default location.origin
+                 * @readonly
+                 */
+                origin: {reflect: false, value: location.origin},
+
+                /**
+                 * This attribute is bound to `location.pathname`.
                  *
                  * @attribute pathname
                  * @type string
@@ -261,7 +267,7 @@ This element is used to get information about the current browser window.
                 pathname: {reflect: false, value: location.pathname},
 
                 /**
-                 * This attribute is binded to `location.protocol`.
+                 * This attribute is bound to `location.protocol`.
                  *
                  * @attribute protocol
                  * @type string
@@ -271,7 +277,7 @@ This element is used to get information about the current browser window.
                 protocol: {reflect: false, value: location.protocol},
 
                 /**
-                 * This attribute is binded to `history.state`.
+                 * This attribute is bound to `history.state`.
                  *
                  * @attribute state
                  * @type Object
@@ -281,7 +287,7 @@ This element is used to get information about the current browser window.
                 state: {reflect: false, value: history.state},
 
                 /**
-                 * This attribute is binded to `location.search`.
+                 * This attribute is bound to `location.search`.
                  *
                  * @attribute search
                  * @type string
@@ -296,10 +302,10 @@ This element is used to get information about the current browser window.
              *
              * @property events
              * @type Array
-             * @default ["beforeunload", "hashchange", "offline", "online", "pagehide", "pageshow", "popstate", "unload"]
+             * @default ["hashchange", "offline", "online", "pagehide", "pageshow", "popstate", "unload"]
              * @readonly
              */
-            events: ['beforeunload', 'hashchange', 'offline', 'online', 'pagehide', 'pageshow', 'popstate', 'unload'],
+            events: ['hashchange', 'offline', 'online', 'pagehide', 'pageshow', 'popstate', 'unload'],
 
             /**
              * The list of instances.
