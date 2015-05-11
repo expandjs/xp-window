@@ -1,7 +1,7 @@
 {
   "name": "xp-window",
   "license": "BSD-3-Clause",
-  "version": "0.8.7",
+  "version": "0.8.8",
   "description": "A custom element used to get information about the current browser window",
   "homepage": "http://www.expandjs.com/elements/xp-window",
   "authors": [
