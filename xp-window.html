@@ -11,6 +11,7 @@ This element is used to get information about the current browser window.
 
 @element xp-window
 @description A custom element used to get information about the current browser window
+@keywords web app, html5, expandjs
 @group functionality
 @homepage http://expandjs.com/elements/xp-window
 
@@ -146,22 +147,22 @@ This element is used to get information about the current browser window.
                 XP.assertArgument(XP.isVoid(url) || XP.isString(url), 3, 'string');
 
                 // Vars
-                var self = this,
-                    push = url && url !== self.href;
+                var self = this;
 
                 // Preparing
+                url   = url || location.href;
                 title = title || document.title;
                 data  = XP.assign({}, data, {title: title});
 
                 // Pushing
-                history[push ? 'pushState' : 'replaceState'](data, title, url);
+                history[url !== location.href ? 'pushState' : 'replaceState'](data, title, url);
                 document.title = title;
 
                 // Refreshing
                 XP.invoke(self.instances, 'refresh');
 
                 // Firing
-                if (push) { self.asyncFire('xp-window-popstate', {firer: self}); }
+                if (url !== location.href) { self.asyncFire('xp-window-popstate', {firer: self}); }
 
                 return self;
             },
@@ -215,7 +216,7 @@ This element is used to get information about the current browser window.
                  * @type string
                  * @default location.hash
                  */
-                hash: {reflect: false, value: location.hash},
+                hash: {reflect: false, value: ''},
 
                 /**
                  * This attribute is bound to `location.host`.
@@ -225,7 +226,7 @@ This element is used to get information about the current browser window.
                  * @default location.host
                  * @readonly
                  */
-                host: {reflect: false, value: location.host},
+                host: {reflect: false, value: ''},
 
                 /**
                  * This attribute is bound to `location.hostname`.
@@ -235,7 +236,7 @@ This element is used to get information about the current browser window.
                  * @default location.hostname
                  * @readonly
                  */
-                hostname: {reflect: false, value: location.hostname},
+                hostname: {reflect: false, value: ''},
 
                 /**
                  * This attribute is bound to `location.href`.
@@ -245,7 +246,7 @@ This element is used to get information about the current browser window.
                  * @default location.href
                  * @readonly
                  */
-                href: {reflect: false, value: location.href},
+                href: {reflect: false, value: ''},
 
                 /**
                  * This attribute is bound to `location.origin`.
@@ -255,7 +256,7 @@ This element is used to get information about the current browser window.
                  * @default location.origin
                  * @readonly
                  */
-                origin: {reflect: false, value: location.origin},
+                origin: {reflect: false, value: ''},
 
                 /**
                  * This attribute is bound to `location.pathname`.
@@ -265,7 +266,7 @@ This element is used to get information about the current browser window.
                  * @default location.pathname
                  * @readonly
                  */
-                pathname: {reflect: false, value: location.pathname},
+                pathname: {reflect: false, value: ''},
 
                 /**
                  * This attribute is bound to `location.protocol`.
@@ -275,7 +276,7 @@ This element is used to get information about the current browser window.
                  * @default location.protocol
                  * @readonly
                  */
-                protocol: {reflect: false, value: location.protocol},
+                protocol: {reflect: false, value: ''},
 
                 /**
                  * This attribute is bound to `history.state`.
@@ -285,7 +286,7 @@ This element is used to get information about the current browser window.
                  * @default history.state
                  * @readonly
                  */
-                state: {reflect: false, value: history.state},
+                state: {reflect: false, value: ''},
 
                 /**
                  * This attribute is bound to `location.search`.
@@ -295,7 +296,7 @@ This element is used to get information about the current browser window.
                  * @default location.search
                  * @readonly
                  */
-                search: {reflect: false, value: location.search}
+                search: {reflect: false, value: ''}
             },
 
             /**
