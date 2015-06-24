@@ -131,36 +131,37 @@ This element is used to get information about the current browser window.
          * @method pushState
          * @param {Object} [data]
          * @param {string} [title = document.title]
-         * @param {string} [url = location.href]
+         * @param {string} [href = location.href]
          * @returns {Element}
          */
-        pushState: function (data, title, url) {
+        pushState: function (data, title, href) {
 
             // Asserting
             XP.assertArgument(XP.isVoid(data) || XP.isObject(data), 1, 'Object');
             XP.assertArgument(XP.isVoid(data) || XP.isString(title), 2, 'string');
-            XP.assertArgument(XP.isVoid(url) || XP.isString(url), 3, 'string');
+            XP.assertArgument(XP.isVoid(href) || XP.isString(href), 3, 'string');
 
             // Vars
-            var self = this;
+            var self     = this,
+                oldHref  = location.href,
+                oldTitle = document.title;
 
             // Preparing
-            url   = url || location.href;
-            title = title || document.title;
+            href  = href || oldHref;
+            title = title || oldTitle;
             data  = XP.assign({}, data, {title: title});
 
             // Pushing
-            history[url !== location.href ? 'pushState' : 'replaceState'](data, title, url);
-            document.title = title;
+            history[href !== oldHref ? 'pushState' : 'replaceState'](data, title, href);
+
+            // Setting
+            if (title !== oldTitle) { document.title = title; }
+
+            // Firing
+            if (href !== oldHref) { XP.delay(function () { self.fire('xp-window-popstate', {firer: self}); }); }
 
             // Refreshing
             XP.invoke(self.instances, '_refresh');
-
-            // Checking
-            if (url === location.href) { return self; }
-
-            // Firing
-            XP.delay(function () { self.fire('xp-window-popstate', {firer: self}); });
 
             return self;
         },
