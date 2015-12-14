@@ -1,9 +1,9 @@
 {
   "name": "xp-window",
   "license": "BSD-3-Clause",
-  "version": "0.9.11",
+  "version": "0.10.0",
   "main": "xp-window.html",
-  "description": "A custom element used to get information about the current browser window",
+  "description": "A custom element used to get interact with the browser window",
   "homepage": "http://expandjs.com/elements/xp-window",
   "authors": [
     "Giuliano Rullo <g.rullo@expandjs.com>",
@@ -11,16 +11,17 @@
     "Robert Manolea <r.manolea@expandjs.com>"
   ],
   "keywords": [
-    "web app",
-    "html5",
     "expandjs",
+    "web app",
+    "custom elements",
     "web-components"
   ],
   "ignore": [
     "**/.*"
   ],
   "dependencies": {
-    "expandjs": "ExpandJS/expandjs#0.9.11",
-    "polymer": "Polymer/polymer#^1.1.0"
+    "expandjs": "ExpandJS/expandjs#0.10.0",
+    "xp-array-behavior": "ExpandJS/xp-array-behavior#0.10.0",
+    "polymer": "Polymer/polymer#^1.2.0"
   }
 }

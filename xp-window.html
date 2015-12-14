@@ -7,27 +7,38 @@ The complete set of contributors may be found at https://expandjs.github.io/CONT
 -->
 
 <!--
-This element is used to get information about the current browser window.
+A custom element used to get interact with the browser window.
 
 @element xp-window
-@description A custom element used to get information about the current browser window
-@keywords web app, html5, expandjs, web-components
+@description A custom element used to get interact with the browser window
+@keywords expandjs, web app, custom elements, web-components
 @group functionality
+@hot
+
 @homepage http://expandjs.com/elements/xp-window
 @repository https://github.com/ExpandJS/xp-window
 
-@dependency polymer Polymer/polymer#^1.1.0
-@dependency expandjs ExpandJS/expandjs#0.9.11
+@behavior xp-array-behavior /bower_components/xp-array-behavior/xp-array-behavior.html
+
+@dependency polymer Polymer/polymer#^1.2.0
+@dependency expandjs ExpandJS/expandjs#0.10.0
+@dependency xp-array-behavior ExpandJS/xp-array-behavior#0.10.0
 -->
 
 <link rel="import" href="../polymer/polymer.html">
 <link rel="import" href="../expandjs/expandjs.html">
+<link rel="import" href="../xp-array-behavior/xp-array-behavior.html">
 
 <script>
     Polymer({
 
         // ELEMENT
         is: 'xp-window',
+
+        // BEHAVIORS
+        behaviors: [
+            Polymer.XPArrayBehavior
+        ],
 
         /*********************************************************************/
 
@@ -96,9 +107,7 @@ This element is used to get information about the current browser window.
          * @returns {Element}
          */
         back: function () {
-            var self = this;
-            history.back();
-            return self;
+            return history.back() || this;
         },
 
         /**
@@ -108,9 +117,7 @@ This element is used to get information about the current browser window.
          * @returns {Element}
          */
         forward: function () {
-            var self = this;
-            history.forward();
-            return self;
+            return history.forward() || this;
         },
 
         /**
@@ -121,9 +128,8 @@ This element is used to get information about the current browser window.
          * @returns {Element}
          */
         go: function (delta) {
-            var self = this;
-            if (XP.isInt(delta)) { history.go(delta); }
-            return self;
+            XP.assertArgument(XP.isInt(delta), 1, 'number');
+            return history.go(delta) || this;
         },
 
         /**
@@ -136,6 +142,9 @@ This element is used to get information about the current browser window.
          * @returns {Element}
          */
         pushState: function (data, title, href) {
+
+            // Preparing
+            if (XP.isString(data)) { href = title; title = data; data = null; }
 
             // Asserting
             XP.assertArgument(XP.isVoid(data) || XP.isObject(data), 1, 'Object');
@@ -150,19 +159,18 @@ This element is used to get information about the current browser window.
             // Preparing
             href  = href || oldHref;
             title = title || oldTitle;
-            data  = XP.assign({}, data, {title: title});
 
             // Pushing
-            history[href !== oldHref ? 'pushState' : 'replaceState'](data, title, href);
+            history[href !== oldHref ? 'pushState' : 'replaceState'](XP.assign({}, data, {title: title}), title, href);
 
             // Setting
             if (title !== oldTitle) { document.title = title; }
 
             // Firing
-            if (href !== oldHref) { XP.delay(function () { self.fire('xp-window-popstate', {firer: self}); }); }
+            if (href !== oldHref) { XP.delay(self.fire.bind(self, 'xp-window-popstate', {firer: self})); }
 
             // Refreshing
-            XP.invoke(self.instances, '_refresh');
+            XP.invoke(self.instances, 'update');
 
             return self;
         },
@@ -176,21 +184,16 @@ This element is used to get information about the current browser window.
          * @returns {Element}
          */
         replaceState: function (data, title) {
-            var self = this;
-            self.pushState(data, title);
-            return self;
+            return this.pushState(data, title);
         },
 
-        /*********************************************************************/
-
         /**
-         * Refreshes the element.
+         * Updates the element.
          *
-         * @method _refresh
+         * @method update
          * @returns {Element}
-         * @private
          */
-        _refresh: function () {
+        update: function () {
 
             // Vars
             var self = this;
@@ -213,20 +216,6 @@ This element is used to get information about the current browser window.
 
         // PROPERTIES
         properties: {
-
-            /**
-             * The list of events to listen.
-             *
-             * @attribute events
-             * @type Array
-             * @default ["hashchange", "offline", "online", "pagehide", "pageshow", "popstate", "unload"]
-             * @readonly
-             */
-            events: {
-                readOnly: true,
-                type: Array,
-                value: ['hashchange', 'offline', 'online', 'pagehide', 'pageshow', 'popstate', 'unload']
-            },
 
             /**
              * This attribute is bound to `location.hash`.
@@ -373,6 +362,16 @@ This element is used to get information about the current browser window.
         },
 
         /**
+         * The list of events.
+         *
+         * @attribute events
+         * @type Array
+         * @default ["hashchange", "offline", "online", "pagehide", "pageshow", "popstate", "unload"]
+         * @readonly
+         */
+        events: ['hashchange', 'offline', 'online', 'pagehide', 'pageshow', 'popstate', 'unload'],
+
+        /**
          * The list of instances.
          *
          * @property instances
@@ -385,8 +384,10 @@ This element is used to get information about the current browser window.
         /*********************************************************************/
 
         // OBSERVER
-        _hashChanged: function (post) {
-            if (post !== location.hash) { location.hash = post; }
+        _hashChanged: function () {
+
+            // Setting
+            if (this.hash !== location.hash) { location.hash = this.hash; }
         },
 
         /*********************************************************************/
@@ -397,8 +398,8 @@ This element is used to get information about the current browser window.
             // Vars
             var self = this;
 
-            // Pushing
-            self.push('instances', self);
+            // Appending
+            self.append('instances', self);
 
             // Listening
             self.events.forEach(function (event) { self.listen(window, event, '_handleEvent'); });
@@ -420,10 +421,10 @@ This element is used to get information about the current browser window.
                 title = (event.state && event.state.title) || document.title;
 
             // Setting
-            if (XP.isEvent(event, 'popstate') && title !== document.title) { document.title = title; }
+            if (event.type === 'popstate' && title !== document.title) { document.title = title; }
 
-            // Refreshing
-            if (XP.isEvent(event, 'hashchange') || XP.isEvent(event, 'popstate')) { self._refresh(); }
+            // Updating
+            if (event.type === 'hashchange' || event.type === 'popstate') { self.update(); }
 
             // Firing
             self.fire('xp-window-' + event.type, {firer: self});
